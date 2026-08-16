@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | ศูนย์แพทย์ พุทธชินราช</title>
+
+    <link rel="icon" type="image/png" href="logo-sm.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Noto Sans Thai"', 'sans-serif'] },
+                    colors: { medical: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' } }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .dot-green {
+            background-color: #22c55e;
+        }
+
+        .dot-red {
+            background-color: #ef4444;
+        }
+
+        .dot-yellow {
+            background-color: #f59e0b;
+        }
+
+        .dot-gray {
+            background-color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 p-4 sm:p-6 min-h-screen flex flex-col">
+
+    <div class="container mx-auto max-w-[1500px] flex-1">
+
+        <div
+            class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-4">
+                <img src="logo-sm.png" class="w-14 h-14 rounded-xl shadow-sm border border-slate-100"
+                    onerror="this.style.display='none'">
+                <div>
+                    <h1 class="text-2xl font-bold text-medical-800">แดชบอร์ดจัดการเวลา 🕖</h1>
+                    <p class="text-sm text-slate-500 mt-1">ศูนย์แพทยศาสตรศึกษาชั้นคลินิก โรงพยาบาลพุทธชินราช พิษณุโลก
+                    </p>
+                </div>
+            </div>
+            <div class="flex gap-2 w-full sm:w-auto">
+                <a href="admin-map.html"
+                    class="flex-1 sm:flex-none text-center py-2.5 px-5 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition shadow-sm border border-slate-200">
+                    <i class="fas fa-map-marked-alt mr-1"></i> ตั้งค่าหมุด
+                </a>
+                <a href="admin-time.html"
+                    class="flex-1 sm:flex-none text-center py-2.5 px-4 rounded-xl bg-amber-50 text-amber-700 font-semibold hover:bg-amber-100 transition shadow-sm border border-amber-200 text-sm">
+                    <i class="fas fa-clock mr-1"></i> ตั้งเวลาสาย
+                </a>
+                <a href="member.html"
+                    class="flex-1 sm:flex-none text-center py-2.5 px-5 rounded-xl bg-medical-700 text-white font-semibold hover:bg-medical-800 transition shadow-sm">
+                    <i class="fas fa-user-md mr-1"></i> จัดการนิสิตแพทย์
+                </a>
+            </div>
+        </div>
+
+        <div class="flex flex-col xl:flex-row gap-6">
+
+            <div class="xl:w-80 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex-shrink-0 h-fit">
+
+                <h2 class="font-bold text-lg mb-4 flex items-center text-slate-700"><i
+                        class="fas fa-filter text-medical-500 mr-2"></i> ตัวกรองข้อมูล</h2>
+
+                <div class="space-y-3 mb-5">
+                    <div>
+                        <input id="filterSearch" type="text"
+                            class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-medical-600 focus:ring-1 focus:ring-medical-600 outline-none transition shadow-sm"
+                            placeholder="ค้นหาชื่อ หรือ รหัสนิสิต..." />
+                    </div>
+                    <div>
+                        <!-- 🌟 เปลี่ยน Dropdown ให้เป็นกล่องว่างๆ เพื่อรอรับข้อมูล -->
+                        <select id="filterDept"
+                            class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-medical-600 focus:ring-1 focus:ring-medical-600 outline-none transition cursor-pointer font-medium text-slate-700 shadow-sm">
+                            <option value="">ทุกตำแหน่ง / ชั้นปี</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <label
+                        class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">สถานะ</label>
+                    <!-- 🌟 เปลี่ยน Checkbox เป็น Container ว่างๆ เพื่อรับหมวดตามตำแหน่ง -->
+                    <div id="filterJobContainer" class="flex flex-col space-y-2 text-sm">
+                        <div class="text-xs text-slate-400"><i class="fas fa-spinner fa-spin mr-1"></i> กำลังโหลด...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">ช่วงเวลา</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-xs font-semibold text-slate-500 block mb-0.5">เริ่มวันที่</label><input
+                                id="startDate" type="date"
+                                class="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-medical-500" />
+                        </div>
+                        <div><label class="text-xs font-semibold text-slate-500 block mb-0.5">ถึงวันที่</label><input
+                                id="endDate" type="date"
+                                class="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-medical-500" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div><label class="text-xs font-semibold text-slate-500 block mb-0.5">เวลาเริ่ม</label><input
+                                id="startTime" type="time"
+                                class="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-medical-500" />
+                        </div>
+                        <div><label class="text-xs font-semibold text-slate-500 block mb-0.5">เวลาสิ้นสุด</label><input
+                                id="endTime" type="time"
+                                class="w-full rounded-lg border border-slate-300 p-2 text-sm outline-none focus:border-medical-500" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-5 border-slate-200">
+
+                <h2 class="font-bold text-lg mb-4 flex items-center text-slate-700"><i
+                        class="fas fa-file-export text-medical-500 mr-2"></i> ส่งออกข้อมูล</h2>
+                <div class="mb-4">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label class="inline-flex items-center"><input id="colImage" type="checkbox"
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">รูปภาพ</span></label>
+                        <label class="inline-flex items-center"><input id="colEmployeeId" type="checkbox" checked
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">รหัสนิสิต</span></label>
+                        <label class="inline-flex items-center"><input id="colName" type="checkbox" checked
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">ชื่อ</span></label>
+                        <label class="inline-flex items-center"><input id="colStatus" type="checkbox" checked
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">สถานะ</span></label>
+                        <label class="inline-flex items-center"><input id="colLate" type="checkbox" checked
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">ความล่าช้า</span></label>
+                        <label class="inline-flex items-center"><input id="colNote" type="checkbox" checked
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">หมายเหตุ</span></label>
+                        <label class="inline-flex items-center"><input id="colDate" type="checkbox" checked
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">วันที่</span></label>
+                        <label class="inline-flex items-center"><input id="colTime" type="checkbox" checked
+                                class="rounded text-medical-600 focus:ring-medical-600" /> <span
+                                class="ml-1.5 font-medium text-slate-600">เวลา</span></label>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <button id="exportCsvBtn"
+                        class="w-full py-3 rounded-xl bg-medical-50 text-medical-700 hover:bg-medical-100 hover:text-medical-800 font-bold text-sm transition flex justify-center items-center border border-medical-100">
+                        <i class="fas fa-file-csv mr-2"></i> ส่งออก .CSV
+                    </button>
+                    <button id="exportTxtBtn"
+                        class="w-full py-3 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-sm transition flex justify-center items-center border border-slate-200">
+                        <i class="fas fa-file-alt mr-2"></i> ส่งออก .TXT
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col min-w-0">
+                <div
+                    class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+
+                    <div
+                        class="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-slate-50/50">
+                        <div class="flex bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+                            <button id="sortDescBtn"
+                                class="px-5 py-2.5 text-sm font-bold bg-slate-100 text-slate-800 hover:bg-slate-200 transition">ล่าสุดก่อน</button>
+                            <div class="w-px bg-slate-200"></div>
+                            <button id="sortAscBtn"
+                                class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 transition">เก่าสุดก่อน</button>
+                        </div>
+                        <select id="rowsPerPage"
+                            class="rounded-lg border border-slate-200 p-2.5 text-sm font-medium outline-none bg-white shadow-sm focus:border-medical-500">
+                            <option value="15">แสดง 15 แถว</option>
+                            <option value="50">แสดง 50 แถว</option>
+                            <option value="100">แสดง 100 แถว</option>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto flex-1">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th
+                                        class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider w-32 text-center">
+                                        โปรไฟล์ / เช็คอิน</th>
+                                    <th
+                                        class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[200px]">
+                                        นิสิตแพทย์</th>
+                                    <th
+                                        class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">
+                                        สถานะ</th>
+                                    <th
+                                        class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden md:table-cell text-center">
+                                        ความล่าช้า</th>
+                                    <th
+                                        class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">
+                                        วัน/เวลา</th>
+                                    <th
+                                        class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden xl:table-cell">
+                                        หมายเหตุ</th>
+                                    <th
+                                        class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-center w-24">
+                                        ข้อมูล</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataList" class="bg-white divide-y divide-slate-100 text-sm">
+                                <tr>
+                                    <td colspan="7" class="text-center py-16 text-slate-400">
+                                        <div
+                                            class="animate-spin rounded-full h-8 w-8 border-4 border-medical-200 border-t-medical-600 mx-auto mb-3">
+                                        </div>
+                                        <div class="text-base font-medium">กำลังโหลดข้อมูล...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div
+                        class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50">
+                        <div id="rowsInfo" class="text-sm text-slate-500 font-bold">กำลังโหลด...</div>
+                        <div class="flex gap-2">
+                            <button id="prevPageBtn"
+                                class="bg-white border border-slate-200 text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition text-sm font-bold shadow-sm">ก่อนหน้า</button>
+                            <button id="nextPageBtn"
+                                class="bg-white border border-slate-200 text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition text-sm font-bold shadow-sm">ถัดไป</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="popupModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300"
+            id="popupContent">
+
+            <div class="relative bg-medical-800 h-28">
+                <button id="closePopup"
+                    class="absolute top-3 right-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="px-6 pb-6 relative pt-0">
+                <div class="flex justify-center gap-4 -mt-12 mb-4">
+                    <div class="relative group cursor-pointer"
+                        onclick="openLightbox(document.getElementById('modalProfileImg').src)">
+                        <img id="modalProfileImg" src=""
+                            class="h-24 w-24 rounded-full object-cover border-4 border-white shadow-md bg-white transition group-hover:opacity-80">
+                        <div
+                            class="absolute -bottom-2 right-1/2 translate-x-1/2 bg-slate-600 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shadow">
+                            โปรไฟล์</div>
+                    </div>
+                    <div class="relative group cursor-pointer"
+                        onclick="openLightbox(document.getElementById('modalCheckinImg').src)">
+                        <img id="modalCheckinImg" src=""
+                            class="h-24 w-24 rounded-full object-cover border-4 border-white shadow-md bg-white transition group-hover:opacity-80">
+                        <div
+                            class="absolute -bottom-2 right-1/2 translate-x-1/2 bg-medical-600 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shadow">
+                            เช็คอิน</div>
+                    </div>
+                </div>
+
+                <div class="text-center mb-5 border-b border-slate-100 pb-4">
+                    <h3 id="modalName" class="text-xl font-bold text-slate-800">ชื่อนิสิตแพทย์</h3>
+                    <p id="modalId"
+                        class="text-sm text-slate-500 mt-1 font-medium bg-slate-100 inline-block px-3 py-1 rounded-full">
+                        รหัส: 00000</p>
+                </div>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium"><i class="fas fa-tag w-5 text-center"></i> สถานะ</span>
+                        <span id="modalStatus" class="font-bold px-3 py-1.5 rounded-lg text-xs">สถานะ</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium"><i class="far fa-calendar w-5 text-center"></i>
+                            วันที่เวลา</span>
+                        <span id="modalDateTime" class="font-bold text-slate-800 text-base">01/01/2024 08:00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium"><i class="fas fa-hourglass-half w-5 text-center"></i>
+                            ความล่าช้า</span>
+                        <span id="modalDelay" class="font-bold text-base">-</span>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <p class="text-slate-500 font-medium mb-1.5"><i
+                                class="fas fa-map-marker-alt w-5 text-center"></i> สถานที่พิกัด</p>
+                        <p id="modalLocation"
+                            class="font-medium text-slate-700 text-xs leading-relaxed bg-slate-50 p-2.5 rounded-xl">
+                            กำลังโหลดพิกัด...</p>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-slate-500 font-medium mb-1.5"><i class="fas fa-comment-dots w-5 text-center"></i>
+                            หมายเหตุ</p>
+                        <div id="modalNote"
+                            class="bg-amber-50 text-amber-800 border border-amber-100 p-2.5 rounded-xl text-sm font-medium">
+                            -</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="lightboxModal"
+        class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+        <button onclick="closeLightbox()"
+            class="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full text-2xl w-12 h-12 flex items-center justify-center transition focus:outline-none">&times;</button>
+        <img id="lightboxImg" src=""
+            class="max-w-[95vw] max-h-[90vh] object-contain rounded-lg shadow-2xl transform scale-95 transition-transform duration-300">
+    </div>
+
+    <script src="config.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>บันทึกการเข้า-ออกงาน</title>
+
+  <link rel="icon" type="image/png" href="logo-sm.png" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+
+  <style>
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    .desktop-warning {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-warning {
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #f1f5f9;
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      .app-container {
+        display: none !important;
+      }
+    }
+
+    /* Style สำหรับ Radio Buttons (เข้า/ออกงาน) */
+    input[type="radio"]:checked+label {
+      background-color: #1e293b;
+      /* bg-slate-800 */
+      color: white;
+      border-color: #1e293b;
+    }
+
+    input[type="radio"]:checked+label .dot {
+      display: none;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+  <div class="desktop-warning text-center p-8">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-slate-400 mx-auto mb-4" fill="none"
+      viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+    </svg>
+    <h2 class="text-2xl font-bold text-slate-700 mb-2">รองรับเฉพาะสมาร์ทโฟน</h2>
+    <p class="text-slate-500">กรุณาเปิดลิงก์นี้ผ่านแอปพลิเคชัน LINE</p>
+  </div>
+
+  <div class="app-container max-w-md mx-auto p-4 flex flex-col min-h-screen">
+
+    <div class="flex flex-col items-center justify-center my-2">
+      <img src="logo-sm.png" alt="Logo" class="h-14 w-14 object-contain mb-1 drop-shadow-md rounded-xl bg-white p-1"
+        onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png'">
+      <h1 class="text-lg font-bold text-slate-800">บันทึกเวลาปฏิบัติงาน</h1>
+    </div>
+
+    <div class="bg-slate-800 shadow-lg rounded-2xl text-white text-center mb-6 py-5 px-4">
+      <div id="date" class="text-xs font-light text-slate-300 mb-1">กำลังโหลดวันที่...</div>
+      <div class="text-4xl font-bold tracking-wider" id="time">--:--:--</div>
+      <input type="date" id="todayInput" class="hidden" />
+      <input type="time" id="currentTime" class="hidden" />
+    </div>
+
+    <div id="step1" class="flex-1 flex flex-col">
+      <div class="relative bg-white shadow-sm border border-slate-200 p-5 rounded-2xl mb-4">
+
+        <div id="loadingOverlay"
+          class="hidden absolute inset-0 bg-white/90 rounded-2xl flex-col items-center justify-center z-50">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800 mb-2"></div>
+          <div class="text-sm text-slate-600 font-medium">กำลังค้นหารายชื่อ...</div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="relative">
+            <label
+              class="absolute -top-2 left-3 text-xs bg-white px-1 text-slate-600 font-semibold">ชื่อ-นามสกุล</label>
+            <input type="text" id="columnBData"
+              class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-300 rounded-xl outline-none" readonly />
+          </div>
+          <div class="relative">
+            <label
+              class="absolute -top-2 left-3 text-xs bg-white px-1 text-slate-600 font-semibold">รหัสพนักงาน/นสพ.</label>
+            <input type="text" id="columnCData"
+              class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-300 rounded-xl outline-none" readonly />
+          </div>
+          <div class="relative">
+            <label
+              class="absolute -top-2 left-3 text-xs bg-white px-1 text-slate-600 font-semibold">ตำแหน่ง/ชั้นปี</label>
+            <input type="text" id="columnDData"
+              class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-300 rounded-xl outline-none" readonly />
+          </div>
+        </div>
+
+        <input type="hidden" id="userId" />
+        <input type="hidden" id="columnAData" />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-slate-500 mb-2 pl-2">ทำรายการ:</label>
+        <div class="flex space-x-3 mb-3">
+          <div class="w-1/2">
+            <input type="radio" id="radio-in" name="switch-job" value="เข้างาน" class="hidden" />
+            <label for="radio-in"
+              class="cursor-pointer border border-slate-300 bg-white text-slate-600 py-3 rounded-xl w-full flex items-center justify-center font-medium shadow-sm transition-colors">
+              <span class="dot w-2 h-2 rounded-full bg-emerald-500 mr-2"></span> เข้างาน
+            </label>
+          </div>
+          <div class="w-1/2">
+            <input type="radio" id="radio-out" name="switch-job" value="ออกงาน" class="hidden" />
+            <label for="radio-out"
+              class="cursor-pointer border border-slate-300 bg-white text-slate-600 py-3 rounded-xl w-full flex items-center justify-center font-medium shadow-sm transition-colors">
+              <span class="dot w-2 h-2 rounded-full bg-rose-500 mr-2"></span> ออกงาน
+            </label>
+          </div>
+        </div>
+        <div class="w-full">
+          <input type="radio" id="radio-during" name="switch-job" value="ระหว่างวัน" class="hidden" />
+          <label for="radio-during"
+            class="cursor-pointer border border-slate-300 bg-white text-slate-600 py-3 rounded-xl w-full flex items-center justify-center font-medium shadow-sm transition-colors">
+            ระหว่างวัน
+          </label>
+        </div>
+      </div>
+
+      <input type="hidden" id="jobInput" required />
+      <textarea id="noteInput"
+        class="w-full bg-white shadow-sm border border-slate-200 focus:border-slate-800 outline-none rounded-2xl p-4 text-sm text-slate-700 mb-4 h-20 resize-none mt-auto"
+        placeholder="ระบุหมายเหตุ (ถ้ามี)..."></textarea>
+
+      <button class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-md"
+        onclick="nextStep()">ถัดไป</button>
+    </div>
+
+    <div id="step2" class="hidden flex-1 text-center">
+      <div class="bg-white shadow-sm border border-slate-200 rounded-2xl p-4 mb-4">
+        <div
+          class="relative bg-slate-100 rounded-xl overflow-hidden aspect-[3/4] flex items-center justify-center mb-4">
+          <video id="camera-preview" class="absolute w-full h-full object-cover hidden" autoplay playsinline></video>
+          <img id="preview"
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png"
+            class="absolute w-full h-full object-cover" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-2">
+          <button id="start-camera-btn"
+            class="py-3 px-2 rounded-xl bg-blue-600 text-white text-sm font-medium">เปิดกล้อง</button>
+          <button id="switch-camera-btn"
+            class="py-3 px-2 rounded-xl bg-slate-200 text-slate-800 flex items-center justify-center disabled:opacity-50"
+            disabled>
+            สลับกล้อง
+          </button>
+        </div>
+        <button id="capture-btn"
+          class="w-full py-4 rounded-xl bg-emerald-500 text-white text-sm font-bold disabled:opacity-50" disabled>📸
+          ถ่ายรูป</button>
+      </div>
+
+      <div class="flex space-x-3">
+        <button class="w-1/3 py-4 rounded-2xl bg-slate-200 text-slate-800 font-semibold"
+          onclick="prevStep()">กลับ</button>
+        <button class="w-2/3 py-4 rounded-2xl bg-slate-800 text-white font-semibold"
+          onclick="checkPictureAndNextStep()">ถัดไป</button>
+      </div>
+    </div>
+
+    <div id="step3" class="hidden flex-1 flex flex-col">
+      <button type="button" onclick="getLocation()"
+        class="w-full py-4 mb-4 rounded-2xl bg-indigo-600 text-white font-bold shadow-md animate-pulse">
+        📍 กดเพื่อยืนยันพิกัด
+      </button>
+
+      <div class="bg-white shadow-sm border border-slate-200 p-4 rounded-2xl mb-4 text-left text-sm">
+        <div class="flex justify-between mb-1">
+          <span class="text-slate-500">Lat: <span id="latitude" class="text-slate-800 font-medium">-</span></span>
+          <span class="text-slate-500">Lng: <span id="longitude" class="text-slate-800 font-medium">-</span></span>
+        </div>
+        <p id="fullAddress" class="text-slate-600 line-clamp-2 mt-2 pt-2 border-t border-slate-100">พิกัดสถานที่...</p>
+      </div>
+
+      <input type="hidden" id="latitudeInput" />
+      <input type="hidden" id="longitudeInput" />
+      <input type="hidden" id="fullAddressInput" />
+
+      <iframe id="mapIframe"
+        class="w-full rounded-2xl shadow-sm border border-slate-200 flex-1 min-h-[160px] mb-4 bg-slate-200"
+        frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe>
+
+      <div class="flex space-x-3 mt-auto">
+        <button class="w-1/3 py-4 rounded-2xl bg-slate-200 text-slate-800 font-semibold"
+          onclick="prevStep()">กลับ</button>
+        <button id="submitButton"
+          class="w-2/3 py-4 rounded-2xl bg-slate-300 text-slate-500 font-bold cursor-not-allowed" onclick="submitForm()"
+          disabled>
+          บันทึกข้อมูล
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="config.js"></script>
+  <script src="checkin.js"></script>
+</body>
+
+</html>

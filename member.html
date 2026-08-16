@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการนิสิตแพทย์ | ศูนย์แพทย์ พุทธชินราช</title>
+
+    <link rel="icon" type="image/png" href="logo-sm.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Noto Sans Thai"', 'sans-serif'] },
+                    colors: { medical: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' } }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 p-4 sm:p-6 min-h-screen flex flex-col">
+
+    <div class="container mx-auto max-w-[1400px] flex-1">
+
+        <div
+            class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-4">
+                <div
+                    class="bg-medical-50 text-medical-600 w-14 h-14 rounded-xl flex items-center justify-center text-2xl shadow-sm border border-medical-100">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-medical-800">จัดการข้อมูลนิสิตแพทย์</h1>
+                    <p class="text-sm text-slate-500 mt-1">แก้ไขข้อมูลส่วนตัว วันลา และกำหนดเวลา</p>
+                </div>
+            </div>
+            <a href="admin.html"
+                class="w-full sm:w-auto text-center py-2.5 px-6 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition shadow-sm border border-slate-200">
+                <i class="fas fa-arrow-left mr-2"></i> กลับหน้าแดชบอร์ด
+            </a>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+            <h2 class="font-bold text-lg mb-4 text-slate-700"><i class="fas fa-filter text-medical-500 mr-2"></i>
+                ค้นหาและตัวกรอง</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="lg:col-span-2">
+                    <input type="text" id="filter-search" placeholder="ค้นหาชื่อ หรือ รหัสนิสิต..."
+                        class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-medical-500 focus:ring-1 focus:ring-medical-500 outline-none transition shadow-sm">
+                </div>
+                <div>
+                    <select id="filter-year"
+                        class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-medical-500 focus:ring-1 focus:ring-medical-500 outline-none transition shadow-sm font-medium text-slate-700 cursor-pointer">
+                        <option value="">ทุกตำแหน่ง / ชั้นปี</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 lg:col-span-2">
+                    <button id="reset-leaves"
+                        class="flex-1 bg-amber-50 text-amber-600 border border-amber-200 py-3 px-4 rounded-xl hover:bg-amber-100 transition font-bold text-sm shadow-sm flex items-center justify-center">
+                        <i class="fas fa-calendar-times mr-2"></i> ล้างวันลา
+                    </button>
+                    <button id="reset-ot"
+                        class="flex-1 bg-blue-50 text-blue-600 border border-blue-200 py-3 px-4 rounded-xl hover:bg-blue-100 transition font-bold text-sm shadow-sm flex items-center justify-center">
+                        <i class="fas fa-clock mr-2"></i> ล้าง OT
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+            <div class="overflow-x-auto">
+                <table id="data-table" class="min-w-full divide-y divide-slate-200 text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th
+                                class="py-4 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider w-16 text-center">
+                                ID</th>
+                            <th class="py-4 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                ข้อมูลนิสิตแพทย์</th>
+                            <th
+                                class="py-4 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider w-40 text-center">
+                                ชั้นปี</th>
+                            <th
+                                class="py-4 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider text-center w-52">
+                                จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm bg-white">
+                        <tr>
+                            <td colspan="4" class="text-center py-16 text-slate-400">
+                                <div
+                                    class="animate-spin rounded-full h-8 w-8 border-4 border-medical-200 border-t-medical-600 mx-auto mb-3">
+                                </div>
+                                <div class="font-medium text-base">กำลังโหลดข้อมูล...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div
+                class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50">
+                <div id="rowsInfo" class="text-sm text-slate-500 font-bold">กำลังโหลด...</div>
+                <div id="pagination" class="flex gap-1.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-300">
+        <div id="edit-modal-content"
+            class="bg-white p-0 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col transform scale-95 transition-transform duration-300">
+
+            <div class="bg-medical-800 text-white px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold"><i class="fas fa-user-edit mr-2"></i> แก้ไขข้อมูลนิสิตแพทย์</h2>
+                <button onclick="closeEditModal()"
+                    class="text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition focus:outline-none"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50">
+                <form id="edit-form">
+                    <input type="hidden" id="edit-id">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-1 space-y-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <div class="text-center">
+                                <div
+                                    class="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-slate-100 shadow-sm bg-slate-50 mb-3 group cursor-pointer">
+                                    <img id="preview-image"
+                                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png"
+                                        class="w-full h-full object-cover">
+                                    <label for="edit-image"
+                                        class="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                                        <i class="fas fa-camera text-xl mb-1"></i><span
+                                            class="text-xs font-bold">เปลี่ยนรูป</span>
+                                    </label>
+                                    <input type="file" id="edit-image" accept="image/png, image/jpeg" class="hidden">
+                                </div>
+                                <input type="hidden" id="edit-imageUrl">
+                                <div class="text-[10px] text-slate-400">คลิกที่รูปเพื่อเปลี่ยนรูปโปรไฟล์</div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">LINE ID</label>
+                                <input type="text" id="edit-userID"
+                                    class="w-full rounded-xl border border-slate-200 p-2.5 text-sm bg-slate-100 text-slate-400 cursor-not-allowed outline-none"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2 space-y-6">
+
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                                <h3 class="text-sm font-bold text-medical-700 mb-3 border-b border-slate-100 pb-2">
+                                    ข้อมูลส่วนตัว</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">ชื่อ - นามสกุล
+                                            <span class="text-rose-500">*</span></label>
+                                        <input type="text" id="edit-name"
+                                            class="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus:border-medical-500 outline-none"
+                                            required>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 mb-1 pl-1">รหัสประจำตัวนิสิต
+                                            <span class="text-rose-500">*</span></label>
+                                        <input type="text" id="edit-employeeID"
+                                            class="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus:border-medical-500 outline-none"
+                                            required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">ตำแหน่ง / ชั้นปี
+                                            <span class="text-rose-500">*</span></label>
+                                        <select id="edit-department"
+                                            class="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus:border-medical-500 outline-none"
+                                            required>
+                                            <option value="นพท. ปี 4">นิสิตแพทย์ ชั้นปีที่ 4</option>
+                                            <option value="นพท. ปี 5">นิสิตแพทย์ ชั้นปีที่ 5</option>
+                                            <option value="นพท. ปี 6">นิสิตแพทย์ ชั้นปีที่ 6</option>
+                                            <option value="แพทย์เพิ่มพูนทักษะ">แพทย์เพิ่มพูนทักษะ (Intern)</option>
+                                            <option value="แพทย์ใช้ทุน">แพทย์ใช้ทุน</option>
+                                            <option value="แพทย์พี่เลี้ยง">แพทย์พี่เลี้ยง</option>
+                                            <option value="แพทย์ประจำบ้าน">แพทย์ประจำบ้าน (Resident)</option>
+                                            <option value="อาจารย์แพทย์">อาจารย์แพทย์ (Staff)</option>
+                                            <option value="เจ้าหน้าที่อื่นๆ">เจ้าหน้าที่อื่นๆ</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                                <h3 class="text-sm font-bold text-medical-700 mb-3 border-b border-slate-100 pb-2">
+                                    ตั้งค่าเวลาและวันลา</h3>
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">เวลาเข้า</label>
+                                        <input type="time" id="edit-workStart"
+                                            class="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus:border-medical-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1 pl-1">เวลาออก</label>
+                                        <input type="time" id="edit-workEnd"
+                                            class="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus:border-medical-500 outline-none">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-4 gap-2">
+                                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">ลาพัก
+                                            (วัน)</label><input type="number" id="edit-vacationLeave"
+                                            class="w-full rounded-lg border border-slate-300 p-2 text-sm text-center outline-none"
+                                            min="0"></div>
+                                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">ลากิจ
+                                            (วัน)</label><input type="number" id="edit-personalLeave"
+                                            class="w-full rounded-lg border border-slate-300 p-2 text-sm text-center outline-none"
+                                            min="0"></div>
+                                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">ลาป่วย
+                                            (วัน)</label><input type="number" id="edit-sickLeave"
+                                            class="w-full rounded-lg border border-slate-300 p-2 text-sm text-center outline-none"
+                                            min="0"></div>
+                                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">เวร OT
+                                            (ชม.)</label><input type="number" id="edit-ot"
+                                            class="w-full rounded-lg border border-slate-300 p-2 text-sm text-center outline-none"
+                                            min="0" step="0.5"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+                <button type="button"
+                    class="bg-slate-100 text-slate-700 py-2.5 px-6 rounded-xl hover:bg-slate-200 font-bold transition"
+                    onclick="closeEditModal()">ยกเลิก</button>
+                <button type="submit" form="edit-form" id="save-button"
+                    class="bg-medical-700 text-white py-2.5 px-8 rounded-xl hover:bg-medical-800 font-bold transition shadow-md flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i> บันทึกข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="member.js"></script>
+</body>
+
+</html>
